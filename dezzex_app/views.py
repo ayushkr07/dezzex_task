@@ -3,11 +3,17 @@ from django.contrib.auth.hashers import make_password, check_password
 
 from django.views import View
 
-from .models import Customer
+from .models import Customer,LogFile
 
+class Index(View):
+    def get(self,request):
+        customer_id = request.session.get('customer')
+        if customer_id:
+            customer = Customer.objects.get(id=customer_id)
+            return render(request, 'index.html',{'customer' : customer})
+        else:
+            return render(request, 'index.html')
 
-def index(request):
-    return render(request,'index.html')
 
 class Signup(View):
     def get(self, request):
@@ -19,6 +25,7 @@ class Signup(View):
         phone = request.POST.get('phone')
         passport = request.POST.get('passport')
         email = request.POST.get('email')
+        image = request.POST.get('image')
         password = request.POST.get('password')
 
         # print(type(f_name),type(dob),type(phone),type(passport),type(email),type(passport))
@@ -28,6 +35,7 @@ class Signup(View):
                             phone = phone,
                             passport = passport,
                             email = email,
+                            image = image,
                             password = password)
 
         values = {
@@ -35,7 +43,8 @@ class Signup(View):
             'dob': dob,
             'phone': phone,
             'passport' : passport,
-            'email': email
+            'email': email,
+            'image':image
         }
 
         error_message = self.validateCustomer(customer)
@@ -75,3 +84,36 @@ class Signup(View):
             error_message = 'Email already exists'
 
         return error_message
+
+
+class Login(View):
+    def get(self, request):
+        return render(request, 'login.html')
+
+    def post(self, request):
+        phone = request.POST.get('phone')
+        password = request.POST.get('password')
+        # get customer by email
+        try:
+            customer = Customer.objects.get(phone=phone)
+        except:
+            customer = False
+
+        # error_message = None
+
+        if customer:
+            if check_password(password, customer.password):
+
+                request.session['customer'] = customer.id
+                LogFile.objects.create(customer=customer)
+                return redirect('index')
+            else:
+                error_message = 'Incorrect email or password'
+        else:
+            error_message = 'Incorrect email or password'
+
+        return render(request, 'login.html', {'error': error_message})
+
+def logout(request):
+    request.session.clear()
+    return redirect('login')

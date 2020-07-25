@@ -3,5 +3,43 @@
 {% block title %}Dezzex{% endblock %}
 
 {% block content %}
-hello
+<div class="container">
+    {% if customer %}
+    <div class="border rounded p-4 m-4">
+        <div class="row">
+            <div class="col-2 p-2">
+                <img style="height: 100px;" class="rounded-circle" src="{{customer.image.url}}" alt="">
+            </div>
+            <div class="col-10 pt-4">
+                <p class="display-4">{{customer.full_name}}</p>
+            </div>
+        </div>
+        <hr>
+        <p class="display-0"><b>Registration Time : </b>{{customer.registration_time}}</p>
+        <hr>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>S no.</th>
+                <th>Log Detail</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in customer.logs.all %}
+            <tr>
+
+                <td>{{forloop.counter}}</td>
+                <td>{{log.login_time}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+        <hr>
+    </div>
+    {% else %}
+        <h1>Login or Signup to check logs</h1>
+    {% endif %}
+</div>
 {% endblock %}
